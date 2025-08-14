@@ -4,6 +4,7 @@ import { User } from "./user.model";
 import httpStatus from "http-status-codes";
 import bcrypt from "bcryptjs";
 import config from "../../config";
+import { Wallet } from "../wallet/wallet.model";
 
 const createUser = async (payload: Partial<IUser>) => {
   const session = await User.startSession();
@@ -30,7 +31,27 @@ const createUser = async (payload: Partial<IUser>) => {
       ],
       { session }
     );
-   
+
+    const existingWallet = await Wallet.findOne({
+      user: user[0]._id,
+    });
+    if (existingWallet) {
+      throw new AppError(
+        httpStatus.CONFLICT,
+        "Wallet already exists for this user"
+      );
+    }
+
+    await Wallet.create(
+      [
+        {
+          user: user[0]._id,
+          balance: 50,
+        },
+      ],
+      { session }
+    );
+
     await session.commitTransaction();
     session.endSession();
 

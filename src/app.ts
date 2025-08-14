@@ -1,14 +1,27 @@
 import express, { Request, Response } from "express";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import notFound from "./app/middlewares/notFound";
+import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
+import routes from "./app/routes/routes";
 
+export const app = express();
 
+//middleware
+app.use(cookieParser());
+app.use(express.json());
+app.set("trust proxy", 1);
+app.use(cors());
 
-const app = express(); //set it on the app
+//routes
+app.use("/api/v1", routes);
 
+app.get("/", (req: Request, res: Response) => {
+  res.send({
+    success: true,
+    message: "Welcome to the Digital Wallet Server",
+  });
+});
 
-app.get("/", (req: Request, res: Response)=>{ // also sent this into app
-    res.status(200).json({
-        message: "Welcome tour management backend system"
-    })
-})
-
-export default app;
+app.use(globalErrorHandler);
+app.use(notFound);
